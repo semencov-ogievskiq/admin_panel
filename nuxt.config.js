@@ -10,11 +10,11 @@ export default {
      * При сборке указать локальный адрес сервера.
      * Для ajax запросов
      */
-    backendUrl: 'http://192.168.1.64:81'
+    backendUrl: 'http://localhost:81'
   },
   router: {
     base: '/admin/',
-    middleware: ['auth', 'getClient']
+    middleware: ['auth', 'main']
   },
 
   // Global page headers (https://go.nuxtjs.dev/config-head)
@@ -47,15 +47,19 @@ export default {
     // https://go.nuxtjs.dev/bootstrap
     'bootstrap-vue/nuxt',
     '@nuxtjs/axios',
-    '@nuxtjs/auth'
+    '@nuxtjs/auth',
+    'nuxt-socket-io',
   ],
+  io: {
+    sockets: [{name:'main',url:'http://localhost:81',default:true, persist: true}]
+  },
   auth:{
     strategies: {
       local: {
         endpoints: {
-          login: { url: 'http://192.168.1.64:81/login', method: 'post', propertyName: 'token'},//'http://192.168.1.64:81/login'
+          login: { url: 'http://localhost:81/login', method: 'post', propertyName: 'token'},//'http://192.168.1.64:81/login'
           logout: false,
-          user: { url: 'http://192.168.1.64:81/client', method: 'get', propertyName: 'user'}
+          user: { url: 'http://localhost:81/client', method: 'get', propertyName: 'user'}
         }
       }
     }

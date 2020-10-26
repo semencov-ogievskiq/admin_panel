@@ -16,4 +16,4 @@ export const mutations = {
     removeGroups (state){
         state.groups = [0]
     }
-}
+} 
