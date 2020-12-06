@@ -1,25 +1,32 @@
 <template>
     <div>
-        <!-- ---------------------------- ШАПКА ---------------------------- -->
-        <b-navbar type="dark" variant="dark" tag="header" fixed="top">
-            <b-navbar-brand @click="showSidebar = !showSidebar">
-              <b-icon-list variant="light"></b-icon-list>
-            </b-navbar-brand>
-            <b-navbar-brand to='/'>Панель Администратора</b-navbar-brand>
-        </b-navbar>
-        <sidebar class="bg-dark" :class="(showSidebar)?'active':''">
-          <b-nav class="flex-column">
-            <b-nav-item to="/users">
-              <b-icon-people-fill></b-icon-people-fill>
-							<span>Пользователи</span>
-            </b-nav-item>
-            <b-nav-item to="/test">
-              <b-icon-earbuds></b-icon-earbuds>
-							<span>test</span>
-            </b-nav-item>
-          </b-nav>
-        </sidebar>
-        <main>
+      <b-navbar type="dark" variant="dark" tag="header" fixed="top">
+          <b-navbar-brand @click="toggleSidebar">
+            <b-icon-list variant="light"></b-icon-list>
+          </b-navbar-brand>
+          <b-navbar-brand to='/'>Панель Администратора</b-navbar-brand>
+          
+          <b-navbar-nav class="ml-auto">
+            <b-nav-item-dropdown :text="user.mail" right>
+              <b-dropdown-item-button @click="logout">Выход</b-dropdown-item-button>
+            </b-nav-item-dropdown>
+          </b-navbar-nav>
+      </b-navbar>
+      <sidebar :active="showSidebar" :toggle="toggleSidebar">
+
+        <sidebar-item to="/users" text="Пользователи">
+          <b-icon-people-fill></b-icon-people-fill>
+          <template #list>
+            <b-link to="/users" exact>Все пользователи</b-link>
+            <b-link to="/users/addUser">Зарегистрировать</b-link>
+            <b-link to="/groups">Группы</b-link>
+            <b-link to="/sessions">Сессии</b-link>
+          </template>
+        </sidebar-item>
+
+        
+      </sidebar>
+      <main>
           <b-container fluid>
             <nuxt />
           </b-container>
@@ -28,46 +35,48 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
+import io from 'socket.io-client'
+
 export default {
-  data: ()=>{
+  data(){
     return {
-      socket: null,
       showSidebar: false
     }
   },
+  async fetch(){
+    this.updateGroups()
+  },
   computed: {
-    token: function(){
+    token(){
       return this.$auth.$storage._state['_token.local'].substr(7)
+    },
+    user(){
+      return this.$store.$auth.$state.user
     }
   },
   methods: {
+    ... mapActions('dict',['updateGroups']),
     logout: async function(){
       this.$auth.logout()
         .then(()=> this.$auth.redirect('login'))
         .catch((err)=> console.log(err))
     },
-    /**
-     * Подключение сокет соединение с обработчиком ошибок
-     */
-    setSocket: function(){
-      this.socket = this.$nuxtSocket({
-        name:"main",
-        persist: true, 
-        query:{ 
-          token: this.token
-        }
-      })
-      this.socket.on('error',(err)=>{
-        if(typeof err === 'string' && err === 'Unauthorized'){
-          this.logout()
-        }else{
-          console.log(err)
-        }
-      })
+    toggleSidebar(){
+      this.showSidebar = !this.showSidebar
     }
   },
-  created: function(){
-    this.setSocket()
+  created(){
+    // !!! По идеи объявление сокет соединения должны находиться не здесь
+    this.$root.$socket = io(this.$root.context.env.backendUrl, {
+      query:{ 
+        token: this.token
+      }
+    })
+    // При изменении данных group, перезапрашиваем данные
+    this.$root.$socket.on('changedGroup', ()=>{
+      this.updateGroups()
+    })
   }
 }
 </script>
@@ -86,36 +95,18 @@ export default {
         top: 3.5rem;
         width: 3rem;
         z-index: 1;
-        height: calc(100% - 4.1rem);
+        height: calc(100% - 3.5rem);
         padding-bottom: 2rem;
         transition: width .2s ease-in;
-        /*overflow-y: auto;*/
     }
     sidebar > .nav > .nav-item {
-        /*margin-top: 1rem;*/
         margin-bottom: 1rem;
     }
-    sidebar > .nav > .nav-item > .nav-link > span,
-    sidebar > .nav > .nav-item > ul {
+    sidebar > .nav > .nav-item > .nav-link > span{
         display: none;
-        opacity: 0;
-        transition: opacity 3s step-start;
     }
-    sidebar > .nav > .nav-item > ul {
-        margin-top: 2rem;
-        list-style: none;
-    }
-    sidebar > .nav > .nav-item > ul > li {
-        margin: 0.5rem;
-    }
-    sidebar > .nav > .nav-item:last-child {
-        padding-bottom: 2.2rem;
-    }
-
     sidebar > .nav > .nav-item > .nav-link > .b-icon {
-        opacity: unset;
         display: inline-block;
-        top: unset;
         left: 1rem;
     }
     sidebar > .nav > .nav-item > .nav-link > span {
@@ -130,16 +121,11 @@ export default {
         width: 15rem;
     }
     sidebar:hover > .nav > .nav-item > .nav-link > span,
-    sidebar[class~="active"] > .nav > .nav-item > .nav-link > span,
-    sidebar > .nav > .nav-item:hover > ul,
-    sidebar:hover > .nav > .nav-item > .nav-link[class~='active'] + ul,
-    sidebar[class~="active"] > .nav > .nav-item > .nav-link[class~='active'] + ul {
+    sidebar[class~="active"] > .nav > .nav-item > .nav-link > span{
         display: inline-block;
-        opacity: unset;
     }
-    sidebar a:hover, sidebar a[class~="active"], header > .navbar-brand > .b-icon:hover,
-    sidebar a:hover, sidebar a[class~="active"] > nav > .nav-item > .nav-link,
-    sidebar .nuxt-link-active {
+    sidebar a:hover, sidebar a[class~="nuxt-link-active"],
+    header > .navbar-brand > .b-icon:hover{
         color: #007bff !important;
         text-decoration: none;
     }

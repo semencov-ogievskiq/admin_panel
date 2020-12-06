@@ -10,7 +10,7 @@ export default {
      * При сборке указать локальный адрес сервера.
      * Для ajax запросов
      */
-    backendUrl: 'http://localhost:81'
+    backendUrl: 'http://localhost:81'//'http://localhost:81'
   },
   router: {
     base: '/admin/',
@@ -24,6 +24,9 @@ export default {
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: '' }
+    ],
+    link: [
+      { rel: 'stylesheet', href: '/admin/server.css'}
     ]
   },
 
@@ -33,6 +36,7 @@ export default {
 
   // Plugins to run before rendering page (https://go.nuxtjs.dev/config-plugins)
   plugins: [
+    '~/plugins/vuelidate.js'
   ],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
@@ -48,11 +52,7 @@ export default {
     'bootstrap-vue/nuxt',
     '@nuxtjs/axios',
     '@nuxtjs/auth',
-    'nuxt-socket-io',
   ],
-  io: {
-    sockets: [{name:'main',url:'http://localhost:81',default:true, persist: true}]
-  },
   auth:{
     strategies: {
       local: {

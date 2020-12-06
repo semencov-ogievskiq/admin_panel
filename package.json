@@ -14,9 +14,13 @@
     "bootstrap": "^4.5.2",
     "bootstrap-vue": "^2.16.0",
     "core-js": "^3.6.5",
+    "moment": "^2.29.1",
     "nuxt": "^2.14.5",
     "nuxt-socket-io": "^1.1.11",
-    "socket.io-client": "^2.3.1"
+    "socket.io-client": "^2.3.1",
+    "v-click-outside": "^3.1.2",
+    "vuelidate": "^0.7.6",
+    "vuex-map-fields": "^1.4.1"
   },
   "devDependencies": {}
 }

@@ -1,57 +1,107 @@
 <template>
-  <b-row>
-    <b-col cols="12">
-      <h1>{{user.f}} {{user.i}} {{user.o}}</h1>
-    </b-col>
-    <b-col cols="12" xl="10">
-        <div>
-            <strong>E-mail:</strong>
-            <span class="ml-4">{{user.mail}}</span>
-        </div>
-        <div>
-            <strong>ФИО:</strong>
-            <span class="ml-4">{{user.f}} {{user.i}} {{user.o}}</span>
-        </div>
-        <div>
-            <strong>Группы:</strong>
-            <ul>
-                <li v-for="group in user.groups" :key="group">
-                    {{group}} - {{groups.find((e)=>{return e.id==group}).name}}
-                </li>
-            </ul>
-        </div>
-    </b-col>
-    <b-col cols="12" xl="2">
-        <b-link class="btn btn-success" :to=" '/users/' + user.id + '/edit'">Редактировать</b-link>
-    </b-col>
-  </b-row>
+    <b-row>
+        <!-- User Data -->
+        <b-col cols="12" lg="4" xl="3">
+            <b-list-group>
+                <b-list-group-item class="bg-light py-2 text-center">
+                    <b-img src="" blank thumbnail alt="?" rounded="circle" style="height: 10rem; width: 10rem;"/>
+                </b-list-group-item>
+                <b-list-group-item>
+                    <!-- Информация на пользователя -->
+                    <h5 class="text-center">{{user.f}} {{user.i}} {{user.o}}</h5>
+                    <h5 class="text-center" :class="(status)?'text-success':'text-danger'"><b-icon-circle-fill class="mr-2" font-scale="0.7"/>{{(status)?'online':'offline'}}</h5>
+                    <ul class="p-0" style="list-style: none;">
+                        <li><strong class="mr-3">Mail:</strong> {{user.mail}}</li>
+                        <li><strong class="mr-3">Дата рождения:</strong> {{user.dt_birth}}</li>
+                        <li>
+                            <b-link v-b-toggle.groupCollapseUser class="text-secondary font-weight-bold" style="text-decoration: none;">Состоит в группах <b-icon-caret-down-fill/></b-link> 
+                            <b-collapse class="my-2 pl-4" id="groupCollapseUser" >
+                                <template v-for="group in user.groups" >
+                                    <span :key="group" >{{group}} - {{ showGroupName(group) }}</span>
+                                </template>
+                            </b-collapse>
+                        </li>
+                    </ul>
+                </b-list-group-item>
+                <b-list-group-item variant="success" class="text-center" :to=" '/users/' + user.id + '/edit'">
+                    Редактировать
+                </b-list-group-item>
+            </b-list-group>
+        </b-col>
+        <!-- Body -->
+        <b-col cols="12" lg="8" xl="9">
+           
+        </b-col>
+    </b-row>
 </template>
 
 <script>
 export default {
-    async asyncData (context){
-        if(!+context.params.id){
-            context.redirect('/404')
+    data(){
+        return {
+            user: {
+                f: null,
+                i: null,
+                o: null,
+                mail: null,
+                dt_birth: null,
+                groups: []   
+            },
+            status: false,
+            groups: []
+        }
+    },
+    async fetch (){
+        if(!+this.$route.params.id){
+            this.$router.replace({ path: '/404' })
         }else{
-            let id = context.params.id
-            let data = {
-                user: null,
-                groups: null
-            }
+            let id = this.$route.params.id
             try{
-                var res = await context.$axios.get(context.env.backendUrl + '/users/' + id)
-                data.user = res.data.user
-                var res = await context.$axios.get(context.env.backendUrl + '/users/groups')
-                data.groups = res.data.groups
-                if(data.user){
-                    return data
-                }else{
-                    context.redirect('/404')
+                var res = await this.$axios.get(this.$root.context.env.backendUrl + '/users/' + id)
+                this.user = res.data.user
+                var res = await this.$axios.get(this.$root.context.env.backendUrl + '/users/groups')
+                this.groups = res.data.groups
+                this.getStatusUser()
+                if(!this.user){
+                    this.$router.replace({ path: '/404' })
                 }
             }catch(err){
-                context.redirect('/404')
+                this.$router.replace({ path: '/404' })
             }
         }  
+    },
+    methods:{
+        showGroupName(_id){
+            let data = this.groups.find( (e)=>{ return e.id == _id } )
+            return ( data )? data.name: null
+        },
+        /**
+         * Метод запроса статуса подключения пользователя по socket.io
+         */
+        getStatusUser(){
+            this.$root.$socket.emit('client_status', this.$route.params.id, (status)=>{
+                this.status = status
+            })
+        }
+    },
+    mounted(){
+        // При изменение состояния подключения пользователя, перезапрашиваем его состояие
+        this.$root.$socket.on('changedStateUser', (id)=>{
+            console.log('123')
+            if( id == this.$route.params.id ){
+                this.getStatusUser()
+            }
+        })
+        // При изменение данных пользователя, перезапрашиваем данные страницы
+        this.$root.$socket.on('changedUser', (id)=>{
+            if( id == this.$route.params.id ){
+                this.$fetch()
+            }
+        })
+        // При изменение данных групп, перезапрашиваем данные страницы
+        this.$root.$socket.on('changedGroup', ()=>{
+            this.$fetch()
+        })
     }
 }
 </script>
