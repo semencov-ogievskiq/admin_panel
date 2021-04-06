@@ -17,7 +17,7 @@
                             <b-link v-b-toggle.groupCollapseUser class="text-secondary font-weight-bold" style="text-decoration: none;">Состоит в группах <b-icon-caret-down-fill/></b-link> 
                             <b-collapse class="my-2 pl-4" id="groupCollapseUser" >
                                 <template v-for="group in user.groups" >
-                                    <span :key="group" >{{group}} - {{ showGroupName(group) }}</span>
+                                    <div :key="group" >{{group}} - {{ showGroupName(group) }}</div>
                                 </template>
                             </b-collapse>
                         </li>

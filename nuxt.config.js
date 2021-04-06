@@ -10,7 +10,7 @@ export default {
      * При сборке указать локальный адрес сервера.
      * Для ajax запросов
      */
-    backendUrl: 'http://localhost:81'//'http://localhost:81'
+    backendUrl: 'http://10.11.1.163:81'//'http://localhost:81'
   },
   router: {
     base: '/admin/',
@@ -57,9 +57,9 @@ export default {
     strategies: {
       local: {
         endpoints: {
-          login: { url: 'http://localhost:81/login', method: 'post', propertyName: 'token'},//'http://192.168.1.64:81/login'
+          login: { url: 'http://10.11.1.163:81/login', method: 'post', propertyName: 'token'},//'http://192.168.1.64:81/login'
           logout: false,
-          user: { url: 'http://localhost:81/client', method: 'get', propertyName: 'user'}
+          user: { url: 'http://10.11.1.163:81/client', method: 'get', propertyName: 'user'} 
         }
       }
     }

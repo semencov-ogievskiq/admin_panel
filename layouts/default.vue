@@ -17,10 +17,9 @@
         <sidebar-item to="/users" text="Пользователи">
           <b-icon-people-fill></b-icon-people-fill>
           <template #list>
-            <b-link to="/users" exact>Все пользователи</b-link>
             <b-link to="/users/addUser">Зарегистрировать</b-link>
-            <b-link to="/groups">Группы</b-link>
-            <b-link to="/sessions">Сессии</b-link>
+            <b-link to="/users" exact>Все пользователи</b-link>
+            <b-link to="/users/sessions">Сессии</b-link>
           </template>
         </sidebar-item>
 
@@ -71,7 +70,8 @@ export default {
     this.$root.$socket = io(this.$root.context.env.backendUrl, {
       query:{ 
         token: this.token
-      }
+      },
+      transports: ['websocket','polling']
     })
     // При изменении данных group, перезапрашиваем данные
     this.$root.$socket.on('changedGroup', ()=>{

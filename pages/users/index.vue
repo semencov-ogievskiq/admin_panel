@@ -205,8 +205,6 @@ export default {
     }
   },
   created(){
-    console.log(typeof $nuxt.$store.state.cache.usersReqParams.query.currentPage )
-    console.log($nuxt.$store.state.cache.usersReqParams.query.currentPage)
     // При загрузке страницы задаем локальное состояние формы фильтрации, данными из cache
     this.formFilter = { ... this.filter }
   }
